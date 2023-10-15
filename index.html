@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Controlled Square</title>
+    <style>
+        #message {
+            text-align: center;
+            font-size: 100px;
+        }
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+
+      .square {
+        width: 50px;
+        height: 50px;
+        background-color: blue;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+
+      .obstacle {
+        width: 500px;
+        height: 500px;
+        background-color: red;
+        position: absolute;
+        display: none;
+      }
+
+      #counter {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 24px;
+        color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="square"></div>
+    <div class="obstacle"></div>
+    <p id="message" style="display: none;">You died! Refresh the page to restart</p>
+    <div id="counter">Score: 0</div>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const square = document.querySelector(".square");
+        const obstacle = document.querySelector(".obstacle");
+        const message = document.getElementById("message");
+        const counter = document.getElementById("counter");
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+
+        const speed = 7;
+        const obstacleSpeed =7;
+        let blockCounter = 0;
+
+        let posX = screenWidth / 2;
+        let posY = screenHeight / 2;
+        let canMove = true;
+
+        const keys = {};
+
+        function updateSquarePosition() {
+          square.style.left = `${posX}px`;
+          square.style.top = `${posY}px`;
+        }
+
+        function updateObstaclePosition() {
+          obstacle.style.top = `${obstacle.offsetTop + obstacleSpeed}px`;
+
+          if (obstacle.offsetTop >= screenHeight) {
+            obstacle.style.top = `${-obstacle.clientHeight}px`;
+            obstacle.style.left = `${Math.random() * (screenWidth - obstacle.clientWidth)}px`;
+            if (canMove) {
+              blockCounter++;
+              counter.textContent = `Score: ${blockCounter}`;
+            }
+          }
+        }
+
+        function handleKeyPress(event) {
+          keys[event.key] = true;
+        }
+
+        function handleKeyRelease(event) {
+          keys[event.key] = false;
+        }
+
+        function checkCollision() {
+          if (
+            posX < obstacle.offsetLeft + obstacle.clientWidth &&
+            posX + square.clientWidth > obstacle.offsetLeft &&
+            posY < obstacle.offsetTop + obstacle.clientHeight &&
+            posY + square.clientHeight > obstacle.offsetTop
+          ) {
+            canMove = false;
+            message.style.display = "block";
+          }
+        }
+
+        window.addEventListener("keydown", handleKeyPress);
+        window.addEventListener("keyup", handleKeyRelease);
+
+        function moveSquare() {
+          if (canMove) {
+            if (keys["w"]) {
+              posY -= speed;
+            }
+            if (keys["s"]) {
+              posY += speed;
+            }
+            if (keys["a"]) {
+              posX -= speed;
+            }
+            if (keys["d"]) {
+              posX += speed;
+            }
+
+            posX = Math.max(0, Math.min(screenWidth - square.clientWidth, posX));
+            posY = Math.max(0, Math.min(screenHeight - square.clientHeight, posY));
+
+            updateSquarePosition();
+          }
+
+          updateObstaclePosition();
+          checkCollision();
+          requestAnimationFrame(moveSquare);
+        }
+
+        setInterval(() => {
+          obstacle.style.display = "block";
+          obstacle.style.left = `${Math.random() * (screenWidth - obstacle.clientWidth)}px`;
+        }, 3500);
+
+        moveSquare();
+      });
+    </script>
+  </body>
+</html>
